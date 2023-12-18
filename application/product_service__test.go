@@ -47,7 +47,9 @@ func TestProductService_Enable(t *testing.T) {
 	defer ctrl.Finish()
 	product := mock_application.NewMockProductInterface(ctrl)
 	product.EXPECT().Enable().Return(nil)
+
 	persistence := mock_application.NewMockProductPersistenceInterface(ctrl)
+	persistence.EXPECT().Save(gomock.Any()).Return(product, nil).AnyTimes()
 
 	service := application.ProductService{
 		Persistence: persistence,
@@ -63,12 +65,14 @@ func TestProductService_Disable(t *testing.T) {
 	defer ctrl.Finish()
 	product := mock_application.NewMockProductInterface(ctrl)
 	product.EXPECT().Disable().Return(nil)
+
 	persistence := mock_application.NewMockProductPersistenceInterface(ctrl)
+	persistence.EXPECT().Save(gomock.Any()).Return(product, nil).AnyTimes()
 
 	service := application.ProductService{
 		Persistence: persistence,
 	}
-	result, err := service.Enable(product)
+	result, err := service.Disable(product)
 	require.Nil(t, err)
 	require.Equal(t, product, result)
 }
