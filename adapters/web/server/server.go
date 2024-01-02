@@ -1,0 +1,41 @@
+package server
+
+import (
+	"github.com/gorilla/mux"
+	"github.com/urfave/negroni"
+	"github.com/viniciusbeckerbernardini/go-hexagonal/adapters/web/handler"
+	"github.com/viniciusbeckerbernardini/go-hexagonal/application"
+	"log"
+	"net/http"
+	"os"
+	"time"
+)
+
+type Webserver struct {
+	Service application.ProductServiceInterface
+}
+
+func MakeNewWebServer() *Webserver {
+	return &Webserver{}
+}
+
+func (w Webserver) Serve() {
+	r := mux.NewRouter()
+	n := negroni.New(negroni.NewLogger())
+
+	handler.MakeProductHandlers(r, n, w.Service)
+	http.Handle("/", r)
+
+	server := &http.Server{
+		ReadHeaderTimeout: 10 * time.Second,
+		WriteTimeout:      10 * time.Second,
+		Addr:              ":3002",
+		Handler:           http.DefaultServeMux,
+		ErrorLog:          log.New(os.Stderr, "log: ", log.Lshortfile),
+	}
+
+	err := server.ListenAndServe()
+	if err != nil {
+		log.Fatal(err)
+	}
+}
